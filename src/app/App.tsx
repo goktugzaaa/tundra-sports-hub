@@ -4,7 +4,7 @@ import { RequireAccess } from '../components/RequireAccess';
 import { HomeRoute } from './HomeRoute';
 import { AthleteListView, AthleteDetailView } from '../modules/athletes';
 import { ProspectPipelineView } from '../modules/prospects';
-import { DealBoardView } from '../modules/deals';
+import { DealBoardView, DealDetailView } from '../modules/deals';
 import { PaymentTableView } from '../modules/payments';
 import { TaskListView } from '../modules/tasks';
 import { ComplianceListView } from '../modules/compliance';
@@ -49,6 +49,14 @@ export function App() {
           element={
             <RequireAccess resource="deal">
               <DealBoardView />
+            </RequireAccess>
+          }
+        />
+        <Route
+          path="deals/:id"
+          element={
+            <RequireAccess resource="deal">
+              <DealDetailView />
             </RequireAccess>
           }
         />

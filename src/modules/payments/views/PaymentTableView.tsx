@@ -10,6 +10,7 @@ import {
   Field,
 } from '../../../ui';
 import { focusScroll } from '../../../hooks/useFocusParam';
+import { useQuickTask } from '../../../hooks/useQuickTask';
 import { formatMoney } from '../../../utils/format';
 import { formatDate, todayISO } from '../../../utils/date';
 import { paymentRules, paymentsDomain, type Payment, type PaymentStatus } from '../../../domain';
@@ -43,6 +44,7 @@ export function PaymentTableView() {
 
   const [params] = useSearchParams();
   const focus = params.get('focus');
+  const quick = useQuickTask();
   const [status, setStatus] = useState<'all' | PaymentStatus>(() => {
     const s = params.get('status');
     return s === 'paid' || s === 'pending' || s === 'overdue' ? s : 'all';
@@ -136,7 +138,7 @@ export function PaymentTableView() {
             <th>Amount</th>
             <th>Due Date</th>
             <th>Status</th>
-            {canUpdate && <th />}
+            {(canUpdate || quick.canCreate) && <th />}
           </tr>
         </thead>
         <tbody>
@@ -164,17 +166,39 @@ export function PaymentTableView() {
                 <td>
                   <StatusBadge kind="payment" value={eff} />
                 </td>
-                {canUpdate && (
+                {(canUpdate || quick.canCreate) && (
                   <td>
-                    {eff !== 'paid' && (
-                      <button
-                        className="btn"
-                        disabled={saving}
-                        onClick={() => markPaid(p.id)}
-                      >
-                        Mark paid
-                      </button>
-                    )}
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      {canUpdate && eff !== 'paid' && (
+                        <button
+                          className="btn"
+                          disabled={saving}
+                          onClick={() => markPaid(p.id)}
+                        >
+                          Mark paid
+                        </button>
+                      )}
+                      {quick.canCreate &&
+                        overdue &&
+                        (quick.createdKeys.has(p.id) ? (
+                          <span className="muted">Task added</span>
+                        ) : (
+                          <button
+                            className="btn"
+                            disabled={quick.busyKey === p.id}
+                            onClick={() =>
+                              void quick.createTask(p.id, {
+                                title: `Follow up overdue payment — ${data?.athleteName[p.athleteId] ?? p.athleteId}`,
+                                athleteId: p.athleteId,
+                                priority: 'high',
+                                dueInDays: 7,
+                              })
+                            }
+                          >
+                            + Task
+                          </button>
+                        ))}
+                    </div>
                   </td>
                 )}
               </tr>

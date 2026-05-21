@@ -52,6 +52,28 @@ export function DashboardView() {
               </Link>
             )}
 
+            {/* Action queue — what needs you */}
+            {data.actionQueue.length > 0 && (
+              <>
+                <div className="section-title">Needs Attention</div>
+                <div className="card">
+                  <div className="activity-feed">
+                    {data.actionQueue.map((a) => (
+                      <Link className="activity-item" key={a.id} to={a.link}>
+                        <span className={`activity-dot adot-${a.tone}`} />
+                        <div className="activity-main">
+                          <div className="activity-text">
+                            <strong>{a.label}</strong> — {a.detail}
+                          </div>
+                        </div>
+                        <span className="activity-go">→</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
             {/* Bento KPI grid — each tile drills into its module */}
             <div className="bento">
               <Link to="/payments" className="tile tile-hero">

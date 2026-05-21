@@ -11,6 +11,7 @@ import {
 } from '../../../domain';
 import { todayISO } from '../../../utils/date';
 import { buildActivity, type ActivityItem } from '../activity';
+import { buildActionQueue, type ActionItem } from '../actionQueue';
 
 export interface DashboardSummary {
   athleteCount: number;
@@ -38,6 +39,7 @@ export interface DashboardData {
   pipeline: PipelineStage[];
   payments: PaymentSlice[];
   activity: ActivityItem[];
+  actionQueue: ActionItem[];
 }
 
 const DEAL_STAGES: DealStatus[] = ['negotiation', 'signed', 'active', 'closed'];
@@ -54,12 +56,13 @@ export function useDashboard() {
   const today = todayISO();
 
   return useAsyncData<DashboardData>(async () => {
-    const [athletes, deals, payments, tasks, compliance] = await Promise.all([
+    const [athletes, deals, payments, tasks, compliance, prospects] = await Promise.all([
       service.athletes.getAll(),
       service.deals.getAll(),
       service.payments.getAll(),
       service.tasks.getAll(),
       service.compliance.getAll(),
+      service.prospects.getAll(),
     ]);
 
     const athleteName: Record<string, string> = {};
@@ -100,6 +103,7 @@ export function useDashboard() {
       pipeline,
       payments: paymentSlices,
       activity: buildActivity(deals, payments, tasks, compliance, athleteName, today),
+      actionQueue: buildActionQueue(payments, tasks, compliance, prospects, athleteName, today),
     };
   }, [user]);
 }

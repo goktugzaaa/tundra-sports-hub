@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   PageHeader,
   AsyncBoundary,
@@ -187,7 +188,9 @@ export function DealBoardView() {
                       <div className="pr-mark">{name.charAt(0)}</div>
                       <div className="pr-body">
                         <div className="pr-line">
-                          <span className="pr-name">{name}</span>
+                          <Link className="pr-name link" to={`/deals/${d.id}`}>
+                            {name}
+                          </Link>
                           <StatusBadge kind="deal" value={d.status} />
                         </div>
                         <div className="pr-sub">NIL Deal</div>

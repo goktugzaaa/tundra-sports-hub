@@ -9,6 +9,7 @@ import {
   Field,
 } from '../../../ui';
 import { focusScroll, useFocusParam } from '../../../hooks/useFocusParam';
+import { useQuickTask } from '../../../hooks/useQuickTask';
 import { formatDate, todayISO } from '../../../utils/date';
 import { complianceRules, complianceDomain, type ComplianceItem } from '../../../domain';
 import { useCompliance } from '../hooks/useCompliance';
@@ -30,6 +31,7 @@ export function ComplianceListView() {
     useCompliance();
   const today = todayISO();
   const focus = useFocusParam();
+  const quick = useQuickTask();
 
   const [renewItem, setRenewItem] = useState<ComplianceItem | null>(null);
   const [renewDate, setRenewDate] = useState('');
@@ -146,25 +148,46 @@ export function ComplianceListView() {
                             <StatusBadge kind="compliance" value={status} />
                           </td>
                           <td>
-                            {status === 'expired' && (
-                              <button
-                                className="btn"
-                                disabled={!canResolve || saving}
-                                onClick={() => openRenew(c)}
-                              >
-                                Renew
-                              </button>
-                            )}
-                            {(status === 'pending' || status === 'flagged') && (
-                              <button
-                                className="btn"
-                                disabled={!canResolve || saving}
-                                onClick={() => void resolve(c)}
-                              >
-                                {status === 'pending' ? 'Approve' : 'Resolve'}
-                              </button>
-                            )}
-                            {status === 'valid' && <span className="muted">—</span>}
+                            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                              {status === 'expired' && (
+                                <button
+                                  className="btn"
+                                  disabled={!canResolve || saving}
+                                  onClick={() => openRenew(c)}
+                                >
+                                  Renew
+                                </button>
+                              )}
+                              {(status === 'pending' || status === 'flagged') && (
+                                <button
+                                  className="btn"
+                                  disabled={!canResolve || saving}
+                                  onClick={() => void resolve(c)}
+                                >
+                                  {status === 'pending' ? 'Approve' : 'Resolve'}
+                                </button>
+                              )}
+                              {status !== 'valid' &&
+                                quick.canCreate &&
+                                (quick.createdKeys.has(c.id) ? (
+                                  <span className="muted">Task added</span>
+                                ) : (
+                                  <button
+                                    className="btn"
+                                    disabled={quick.busyKey === c.id}
+                                    onClick={() =>
+                                      void quick.createTask(c.id, {
+                                        title: `Resolve ${c.type} — ${data.athleteName[c.athleteId] ?? c.athleteId}`,
+                                        athleteId: c.athleteId,
+                                        priority: status === 'expired' ? 'high' : 'medium',
+                                      })
+                                    }
+                                  >
+                                    + Task
+                                  </button>
+                                ))}
+                              {status === 'valid' && <span className="muted">—</span>}
+                            </div>
                           </td>
                         </tr>
                       );

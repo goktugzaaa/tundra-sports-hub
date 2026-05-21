@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   PageHeader,
   AsyncBoundary,
@@ -8,6 +9,7 @@ import {
   Modal,
   Field,
 } from '../../../ui';
+import { focusScroll } from '../../../hooks/useFocusParam';
 import { formatMoney } from '../../../utils/format';
 import { formatDate, todayISO } from '../../../utils/date';
 import { paymentRules, paymentsDomain, type Payment, type PaymentStatus } from '../../../domain';
@@ -39,7 +41,12 @@ export function PaymentTableView() {
     usePayments();
   const today = todayISO();
 
-  const [status, setStatus] = useState<'all' | PaymentStatus>('all');
+  const [params] = useSearchParams();
+  const focus = params.get('focus');
+  const [status, setStatus] = useState<'all' | PaymentStatus>(() => {
+    const s = params.get('status');
+    return s === 'paid' || s === 'pending' || s === 'overdue' ? s : 'all';
+  });
   const [athlete, setAthlete] = useState<'all' | string>('all');
   const [dueBefore, setDueBefore] = useState('');
   const [groupBy, setGroupBy] = useState<GroupBy>('none');
@@ -137,7 +144,15 @@ export function PaymentTableView() {
             const eff = paymentRules.effectiveStatus(p, today);
             const overdue = eff === 'overdue';
             return (
-              <tr key={p.id} className={overdue ? 'row-overdue' : undefined}>
+              <tr
+                key={p.id}
+                ref={p.id === focus ? focusScroll : undefined}
+                className={
+                  [overdue && 'row-overdue', p.id === focus && 'row-focus']
+                    .filter(Boolean)
+                    .join(' ') || undefined
+                }
+              >
                 <td>
                   <span className="mono">INV-{p.id.toUpperCase()}</span>
                 </td>

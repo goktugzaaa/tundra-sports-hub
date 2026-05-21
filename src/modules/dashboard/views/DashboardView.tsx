@@ -52,9 +52,9 @@ export function DashboardView() {
               </Link>
             )}
 
-            {/* Bento KPI grid */}
+            {/* Bento KPI grid — each tile drills into its module */}
             <div className="bento">
-              <div className="tile tile-hero">
+              <Link to="/payments" className="tile tile-hero">
                 <div className="t-label">Outstanding Receivables</div>
                 <div className="t-value">
                   {formatMoney({ amount: data.summary.outstandingBalance, currency: 'USD' })}
@@ -69,28 +69,28 @@ export function DashboardView() {
                     'All payments on schedule'
                   )}
                 </div>
-              </div>
+              </Link>
 
-              <div className="tile">
+              <Link to="/payments?status=overdue" className="tile">
                 <div className="t-label">Overdue</div>
                 <div className="t-value">{data.summary.overduePayments}</div>
                 <div className="t-hint">Payments past due</div>
-              </div>
-              <div className="tile">
+              </Link>
+              <Link to="/deals" className="tile">
                 <div className="t-label">Active Deals</div>
                 <div className="t-value">{data.summary.activeDeals}</div>
                 <div className="t-hint">Revenue-generating</div>
-              </div>
-              <div className="tile">
+              </Link>
+              <Link to="/athletes" className="tile">
                 <div className="t-label">Athletes</div>
                 <div className="t-value">{data.summary.athleteCount}</div>
                 <div className="t-hint">On the roster</div>
-              </div>
-              <div className="tile">
+              </Link>
+              <Link to="/tasks" className="tile">
                 <div className="t-label">Open Tasks</div>
                 <div className="t-value">{data.summary.openTasks}</div>
                 <div className="t-hint">In progress / pending</div>
-              </div>
+              </Link>
             </div>
 
             {/* Insight panels */}
@@ -137,7 +137,7 @@ export function DashboardView() {
               ) : (
                 <div className="activity-feed">
                   {data.activity.map((a) => (
-                    <div className="activity-item" key={a.id}>
+                    <Link className="activity-item" key={a.id} to={a.link}>
                       <span className={`activity-dot adot-${a.tone}`} />
                       <div className="activity-main">
                         <div className="activity-text">
@@ -145,7 +145,8 @@ export function DashboardView() {
                         </div>
                         <div className="activity-meta">{formatDate(a.date)}</div>
                       </div>
-                    </div>
+                      <span className="activity-go">→</span>
+                    </Link>
                   ))}
                 </div>
               )}

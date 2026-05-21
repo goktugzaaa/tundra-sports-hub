@@ -8,6 +8,7 @@ import {
   Modal,
   Field,
 } from '../../../ui';
+import { focusScroll, useFocusParam } from '../../../hooks/useFocusParam';
 import { formatMoney, formatMoneyCompact } from '../../../utils/format';
 import { formatDate } from '../../../utils/date';
 import { dealsDomain, dealRules, type Deal, type DealStatus } from '../../../domain';
@@ -40,6 +41,7 @@ export function DealBoardView() {
   } = useDeals();
 
   const [filter, setFilter] = useState<DealStatus | 'all'>('all');
+  const focus = useFocusParam();
 
   // New-deal form
   const [showNew, setShowNew] = useState(false);
@@ -176,7 +178,11 @@ export function DealBoardView() {
                   const next = dealRules.nextDealStatus(d.status);
                   const busy = movingId === d.id;
                   return (
-                    <div className="prospect-row" key={d.id}>
+                    <div
+                      className={'prospect-row' + (d.id === focus ? ' row-focus' : '')}
+                      key={d.id}
+                      ref={d.id === focus ? focusScroll : undefined}
+                    >
                       <div className="pr-mark">{name.charAt(0)}</div>
                       <div className="pr-body">
                         <div className="pr-line">

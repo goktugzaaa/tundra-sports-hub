@@ -8,6 +8,7 @@ import {
   Modal,
   Field,
 } from '../../../ui';
+import { focusScroll, useFocusParam } from '../../../hooks/useFocusParam';
 import { formatDate, todayISO } from '../../../utils/date';
 import { complianceRules, complianceDomain, type ComplianceItem } from '../../../domain';
 import { useCompliance } from '../hooks/useCompliance';
@@ -28,6 +29,7 @@ export function ComplianceListView() {
   const { data, loading, error, reload, canResolve, resolve, renew, saving, saveError } =
     useCompliance();
   const today = todayISO();
+  const focus = useFocusParam();
 
   const [renewItem, setRenewItem] = useState<ComplianceItem | null>(null);
   const [renewDate, setRenewDate] = useState('');
@@ -130,7 +132,11 @@ export function ComplianceListView() {
                       const status = complianceRules.effectiveComplianceStatus(c, today);
                       const soon = complianceRules.isExpiringSoon(c, today);
                       return (
-                        <tr key={c.id}>
+                        <tr
+                          key={c.id}
+                          ref={c.id === focus ? focusScroll : undefined}
+                          className={c.id === focus ? 'row-focus' : undefined}
+                        >
                           <td>{c.type}</td>
                           <td style={{ color: soon ? 'var(--amber)' : undefined }}>
                             {formatDate(c.expiryDate)}

@@ -810,3 +810,30 @@ tr.row-overdue td:first-child { box-shadow: inset 3px 0 0 var(--red); }
 }
 .pr-actions { display: flex; gap: 7px; align-items: center; flex-shrink: 0; }
 .pr-actions .btn { padding: 6px 11px; font-size: 11.5px; }
+
+/* ============================================================
+   DRILL-IN — clickable tiles, activity, focused rows
+   ============================================================ */
+.tile { cursor: pointer; transition: border-color 0.14s, transform 0.14s; }
+.tile:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+.activity-item { cursor: pointer; padding: 12px 8px; margin: 0 -8px; border-radius: 6px; }
+.activity-item:hover { background: var(--surface-2); }
+.activity-go { margin-left: auto; align-self: center; color: var(--text-dim); font-size: 15px; }
+.activity-item:hover .activity-go { color: var(--accent-hi); }
+
+@keyframes focusPulse {
+  0% { background: var(--accent-soft); }
+  100% { background: transparent; }
+}
+tr.row-focus td { animation: focusPulse 2.6s ease-out; }
+tr.row-focus td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.prospect-row.row-focus {
+  animation: focusPulse 2.6s ease-out;
+  box-shadow: inset 3px 0 0 var(--accent);
+  border-radius: 6px;
+}
+.timeline-group.row-focus {
+  box-shadow: inset 3px 0 0 var(--accent), var(--shadow);
+  animation: focusPulse 2.6s ease-out;
+}

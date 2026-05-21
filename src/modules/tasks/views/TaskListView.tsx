@@ -8,6 +8,7 @@ import {
   Modal,
   Field,
 } from '../../../ui';
+import { focusScroll, useFocusParam } from '../../../hooks/useFocusParam';
 import { formatDate, todayISO } from '../../../utils/date';
 import { taskRules, tasksDomain, type Task, type TaskPriority } from '../../../domain';
 import { DEMO_USERS } from '../../../auth/users';
@@ -31,6 +32,7 @@ export function TaskListView() {
     useTasks();
   const { user } = useAuth();
   const today = todayISO();
+  const focus = useFocusParam();
 
   const [showNew, setShowNew] = useState(false);
   const [fTitle, setFTitle] = useState('');
@@ -115,7 +117,15 @@ export function TaskListView() {
                   {sorted.map((t) => {
                     const overdue = taskRules.isOverdueTask(t, today);
                     return (
-                      <tr key={t.id} className={overdue ? 'row-overdue' : undefined}>
+                      <tr
+                        key={t.id}
+                        ref={t.id === focus ? focusScroll : undefined}
+                        className={
+                          [overdue && 'row-overdue', t.id === focus && 'row-focus']
+                            .filter(Boolean)
+                            .join(' ') || undefined
+                        }
+                      >
                         <td>
                           <span className={`priority-dot dot-${t.priority}`} />
                           {t.title}

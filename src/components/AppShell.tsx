@@ -68,10 +68,6 @@ export function AppShell() {
       <aside className="sidebar">
         <div className="brand">
           <img className="brand-logo" src="/logo.png" alt="Tundra Sports" />
-          <div>
-            <div className="brand-name">Tundra</div>
-            <div className="brand-sub">Sports Hub</div>
-          </div>
         </div>
 
         <nav className="nav">

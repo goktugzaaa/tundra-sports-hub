@@ -865,18 +865,13 @@ tr.row-focus td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
    BRAND LOGO
    ============================================================ */
 .brand-logo {
-  height: 30px;
+  height: 46px;
   width: auto;
   display: block;
 }
-.auth-brandmark {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: auto;
-}
+.auth-brandmark { margin-bottom: auto; }
 .auth-logo {
-  height: 46px;
+  height: 74px;
   width: auto;
   display: block;
 }

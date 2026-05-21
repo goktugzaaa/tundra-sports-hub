@@ -36,10 +36,6 @@ export function LoginView() {
       <aside className="auth-brand">
         <div className="auth-brandmark">
           <img className="auth-logo" src="/logo.png" alt="Tundra Sports" />
-          <div>
-            <div className="brand-name">Tundra Sports</div>
-            <div className="brand-sub">Hub</div>
-          </div>
         </div>
 
         <div className="auth-tag">

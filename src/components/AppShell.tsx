@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { RoleSwitcher } from './RoleSwitcher';
 import { useAuth } from '../auth/AuthContext';
 import { canAccess, type Resource } from '../rbac';
+import { ACTIVE_BACKEND } from '../services';
 import { navIcons } from '../ui/icons';
 
 interface NavItem {
@@ -13,29 +14,51 @@ interface NavItem {
   resource?: Resource;
 }
 
-const NAV: NavItem[] = [
-  { to: '/', label: 'Dashboard', icon: 'dashboard', end: true },
-  { to: '/athletes', label: 'Athletes', icon: 'athletes', resource: 'athlete' },
-  { to: '/prospects', label: 'Prospects', icon: 'prospects', resource: 'prospect' },
-  { to: '/deals', label: 'NIL Deals', icon: 'deals', resource: 'deal' },
-  { to: '/payments', label: 'Payments', icon: 'payments', resource: 'payment' },
-  { to: '/tasks', label: 'Tasks', icon: 'tasks', resource: 'task' },
-  { to: '/compliance', label: 'Compliance', icon: 'compliance', resource: 'compliance' },
-  { to: '/documents', label: 'Documents', icon: 'documents', resource: 'document' },
-  { to: '/settings', label: 'Settings', icon: 'settings' },
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: 'Overview',
+    items: [{ to: '/', label: 'Dashboard', icon: 'dashboard', end: true }],
+  },
+  {
+    label: 'Recruitment',
+    items: [
+      { to: '/athletes', label: 'Athletes', icon: 'athletes', resource: 'athlete' },
+      { to: '/prospects', label: 'Prospects', icon: 'prospects', resource: 'prospect' },
+    ],
+  },
+  {
+    label: 'Revenue',
+    items: [
+      { to: '/deals', label: 'NIL Deals', icon: 'deals', resource: 'deal' },
+      { to: '/payments', label: 'Payments', icon: 'payments', resource: 'payment' },
+    ],
+  },
+  {
+    label: 'Operations',
+    items: [
+      { to: '/tasks', label: 'Tasks', icon: 'tasks', resource: 'task' },
+      { to: '/compliance', label: 'Compliance', icon: 'compliance', resource: 'compliance' },
+      { to: '/documents', label: 'Documents', icon: 'documents', resource: 'document' },
+    ],
+  },
+  {
+    label: 'System',
+    items: [{ to: '/settings', label: 'Settings', icon: 'settings' }],
+  },
 ];
 
 /**
- * App layout: sidebar (brand + nav) · topbar (workspace + identity) ·
- * routed content. Nav links the user cannot access are hidden — UI-level
- * RBAC mirroring the route guard and service-layer filtering.
+ * App layout: sidebar (brand · grouped nav · environment) · topbar
+ * (workspace + identity) · routed content. Nav items the user cannot
+ * access are hidden; a group with no visible items is dropped entirely.
  */
 export function AppShell() {
   const { user } = useAuth();
-
-  const visibleNav = NAV.filter(
-    (item) => !item.resource || canAccess(user, item.resource, 'read'),
-  );
 
   return (
     <div className="app-shell">
@@ -48,18 +71,39 @@ export function AppShell() {
           </div>
         </div>
 
-        <div className="nav-section">Workspace</div>
-        {visibleNav.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}
-          >
-            {navIcons[item.icon]}
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
+        <nav className="nav">
+          {NAV_GROUPS.map((group) => {
+            const items = group.items.filter(
+              (item) => !item.resource || canAccess(user, item.resource, 'read'),
+            );
+            if (items.length === 0) return null;
+            return (
+              <div className="nav-group" key={group.label}>
+                <div className="nav-section">{group.label}</div>
+                {items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}
+                  >
+                    {navIcons[item.icon]}
+                    <span>{item.label}</span>
+                  </NavLink>
+                ))}
+              </div>
+            );
+          })}
+        </nav>
+
+        <div className="sidebar-foot">
+          <div className="env-chip">
+            <span className="env-dot" />
+            <span>
+              {ACTIVE_BACKEND === 'mock' ? 'Mock data' : 'Airtable'} · V1
+            </span>
+          </div>
+        </div>
       </aside>
 
       <div className="main-col">

@@ -48,7 +48,7 @@ export function DocumentListView() {
   }
 
   return (
-    <div>
+    <div className="op-legacy">
       <PageHeader
         title="Documents"
         subtitle="Contracts, records and agreements linked to your entities."

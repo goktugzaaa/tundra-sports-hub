@@ -2,18 +2,28 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDataService } from '../services';
 import { useAuth } from '../auth/AuthContext';
+import { Ic } from '../ui/ops';
 
 interface Hit {
   key: string;
+  kind: 'ath' | 'pro' | 'deal' | 'pay' | 'task';
   label: string;
   sub: string;
   to: string;
 }
 
+const KIND_ICON: Record<Hit['kind'], keyof typeof Ic> = {
+  ath: 'athletes',
+  pro: 'prospects',
+  deal: 'deals',
+  pay: 'payments',
+  task: 'tasks',
+};
+
 /**
- * Global command palette — ⌘K / Ctrl-K (or the topbar search button)
- * opens a search across every entity the user can see. Results are
- * RBAC-scoped because they come through the scoped data service.
+ * Global command palette — ⌘K / Ctrl-K (or the topbar search) opens a
+ * search across every entity the user can see. RBAC-scoped via the
+ * scoped data service.
  */
 export function CommandPalette() {
   const service = useDataService();
@@ -57,32 +67,37 @@ export function CommandPalette() {
       ]);
       const name = new Map(athletes.map((a) => [a.id, a.name]));
       const hits: Hit[] = [
-        ...athletes.map((a) => ({
+        ...athletes.map<Hit>((a) => ({
           key: `ath-${a.id}`,
+          kind: 'ath',
           label: a.name,
           sub: `Athlete · ${a.stats.sport}`,
           to: `/athletes/${a.id}`,
         })),
-        ...prospects.map((p) => ({
+        ...prospects.map<Hit>((p) => ({
           key: `pro-${p.id}`,
+          kind: 'pro',
           label: p.name,
           sub: `Prospect · ${p.stage}`,
           to: `/prospects?focus=${p.id}`,
         })),
-        ...deals.map((d) => ({
+        ...deals.map<Hit>((d) => ({
           key: `deal-${d.id}`,
+          kind: 'deal',
           label: `${name.get(d.athleteId) ?? d.athleteId} — NIL deal`,
           sub: `Deal · ${d.status}`,
           to: `/deals/${d.id}`,
         })),
-        ...payments.map((p) => ({
+        ...payments.map<Hit>((p) => ({
           key: `pay-${p.id}`,
+          kind: 'pay',
           label: `INV-${p.id.toUpperCase()}`,
           sub: `Payment · ${name.get(p.athleteId) ?? p.athleteId}`,
           to: `/payments?focus=${p.id}`,
         })),
-        ...tasks.map((t) => ({
+        ...tasks.map<Hit>((t) => ({
           key: `task-${t.id}`,
+          kind: 'task',
           label: t.title,
           sub: `Task · ${t.status.replace('_', ' ')}`,
           to: `/tasks?focus=${t.id}`,
@@ -112,28 +127,47 @@ export function CommandPalette() {
   }
 
   return (
-    <div className="cmdk-backdrop" onClick={() => setOpen(false)}>
-      <div className="cmdk" onClick={(e) => e.stopPropagation()}>
-        <input
-          autoFocus
-          className="cmdk-input"
-          placeholder="Search athletes, deals, payments, tasks…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <div className="cmdk-results">
+    <div className="op-cmdk-backdrop" onClick={() => setOpen(false)}>
+      <div className="op-cmdk" onClick={(e) => e.stopPropagation()}>
+        <div className="op-cmdk-input">
+          <Ic.search />
+          <input
+            autoFocus
+            placeholder="Search athletes, deals, payments, tasks…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <span className="op-kbd">ESC</span>
+        </div>
+        <div className="op-cmdk-results">
           {results.length === 0 ? (
-            <div className="cmdk-empty">No matches.</div>
+            <div className="op-cmdk-empty">No matches.</div>
           ) : (
-            results.map((h) => (
-              <button className="cmdk-row" key={h.key} onClick={() => go(h.to)}>
-                <span className="cmdk-label">{h.label}</span>
-                <span className="cmdk-sub">{h.sub}</span>
-              </button>
-            ))
+            <>
+              <div className="op-cmdk-sec">Results · {results.length}</div>
+              {results.map((h) => {
+                const Icon = Ic[KIND_ICON[h.kind]];
+                return (
+                  <button className="op-cmdk-row" key={h.key} onClick={() => go(h.to)}>
+                    <span className="ico">
+                      <Icon />
+                    </span>
+                    <span>
+                      <span className="label">{h.label}</span>
+                      <span className="sub">{h.sub}</span>
+                    </span>
+                    <Ic.chev />
+                  </button>
+                );
+              })}
+            </>
           )}
         </div>
-        <div className="cmdk-hint">Esc to close</div>
+        <div className="op-cmdk-foot">
+          <span>↵ open</span>
+          <span>esc close</span>
+          <span style={{ marginLeft: 'auto' }}>Tundra Hub</span>
+        </div>
       </div>
     </div>
   );

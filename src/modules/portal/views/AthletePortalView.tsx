@@ -15,7 +15,7 @@ export function AthletePortalView() {
   const today = todayISO();
 
   return (
-    <div>
+    <div className="op-legacy">
       <PageHeader title="My Portal" subtitle="Your contracts, payments and compliance at a glance." />
 
       <AsyncBoundary

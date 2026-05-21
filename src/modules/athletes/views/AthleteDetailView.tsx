@@ -1,23 +1,23 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import {
-  PageHeader,
-  AsyncBoundary,
-  StatCard,
-  CardSkeleton,
-  StatusBadge,
-  Modal,
-  Field,
-} from '../../../ui';
+import { AsyncBoundary, Modal, Field } from '../../../ui';
+import { StatusTag, type OpTone } from '../../../ui/ops';
 import { recruiterName } from '../../../auth/users';
 import { formatMoney, formatMoneyCompact } from '../../../utils/format';
 import { formatDate } from '../../../utils/date';
-import type { AthleteStatus } from '../../../domain';
+import type { AthleteStatus, DealStatus } from '../../../domain';
 import { useAthleteDetail } from '../hooks/useAthleteDetail';
 
 const STATUSES: AthleteStatus[] = ['active', 'injured', 'inactive', 'retired'];
 
-/** Athlete detail — profile header, stats, financial summary, deals, edit. */
+const DEAL_TONE: Record<DealStatus, OpTone> = {
+  negotiation: 'warn',
+  signed: 'blue',
+  active: 'ok',
+  closed: '',
+};
+
+/** Athlete record — operator detail view: header, contract, metrics, deals. */
 export function AthleteDetailView() {
   const { id = '' } = useParams();
   const { data, loading, error, reload, canEdit, save, saving, saveError } =
@@ -47,107 +47,126 @@ export function AthleteDetailView() {
   }
 
   return (
-    <div>
-      <PageHeader
-        title={data ? data.athlete.name : 'Athlete'}
-        subtitle={
-          data
-            ? `${data.athlete.stats.sport} · ${data.athlete.stats.position ?? '—'}`
-            : 'Athlete profile'
-        }
-        actions={
-          <>
-            <Link className="btn" to="/athletes">
-              ← Back
-            </Link>{' '}
-            <button
-              className="btn btn-primary"
-              disabled={!canEdit || !data}
-              onClick={openEdit}
-            >
-              Edit
-            </button>
-          </>
-        }
-      />
-
-      <AsyncBoundary
-        loading={loading}
-        error={error}
-        onRetry={reload}
-        skeleton={<CardSkeleton count={3} />}
-      >
+    <div className="op-detail">
+      <AsyncBoundary loading={loading} error={error} onRetry={reload}>
         {data && (
           <>
-            {/* Financial summary */}
-            <div className="grid grid-3">
-              <StatCard
-                label="Total Revenue"
-                value={formatMoney({ amount: data.totalRevenue, currency: 'USD' })}
-              />
-              <StatCard
-                label="Outstanding"
-                value={formatMoney({ amount: data.outstanding, currency: 'USD' })}
-              />
-              <StatCard label="Assigned Deals" value={data.assignedDeals.length} />
-            </div>
-
-            <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 16 }}>
-              {/* Profile */}
-              <div className="card">
-                <h3 style={{ marginBottom: 12 }}>Profile</h3>
-                <div className="detail-row">
-                  <span className="k">Status</span>
-                  <StatusBadge kind="athlete" value={data.athlete.status} />
+            <div className="d-head">
+              <div>
+                <div className="id">
+                  {data.athlete.id.toUpperCase()} · {data.athlete.stats.sport}
                 </div>
-                <div className="detail-row">
-                  <span className="k">Competing</span>
-                  <span>{data.isActive ? 'Yes' : 'No'}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="k">Recruiter</span>
-                  <span>{recruiterName(data.athlete.recruiterId)}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="k">Season</span>
-                  <span>{data.athlete.stats.season ?? '—'}</span>
+                <div className="name">{data.athlete.name}</div>
+                <div className="tags">
+                  <StatusTag
+                    tone={data.athlete.status === 'active' ? 'ok' : data.athlete.status === 'injured' ? 'alert' : ''}
+                    label={data.athlete.status}
+                  />
+                  <span className="sep">·</span>
+                  <span>{data.athlete.stats.position ?? 'Position —'}</span>
+                  <span className="sep">·</span>
+                  <span>Season {data.athlete.stats.season ?? '—'}</span>
+                  <span className="sep">·</span>
+                  <span>Agent: {recruiterName(data.athlete.recruiterId)}</span>
                 </div>
               </div>
-
-              {/* Stats overview */}
-              <div className="card">
-                <h3 style={{ marginBottom: 12 }}>Performance Metrics</h3>
-                {Object.entries(data.athlete.stats.metrics).map(([k, v]) => (
-                  <div className="detail-row" key={k}>
-                    <span className="k">{k}</span>
-                    <span>{v}</span>
-                  </div>
-                ))}
+              <div className="actions">
+                <Link className="op-btn" to="/athletes">
+                  ‹ Athletes
+                </Link>
+                <button
+                  className="op-btn op-btn-primary"
+                  disabled={!canEdit}
+                  onClick={openEdit}
+                >
+                  Edit
+                </button>
               </div>
             </div>
 
-            {/* Assigned deals */}
-            <div className="card" style={{ marginTop: 16 }}>
-              <h3 style={{ marginBottom: 12 }}>Assigned Deals</h3>
+            <div
+              className="op-summary"
+              style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 4 }}
+            >
+              <div>
+                <div className="l">Total revenue</div>
+                <div className="v">
+                  {formatMoney({ amount: data.totalRevenue, currency: 'USD' })}
+                </div>
+                <div className="s">Settled across deals</div>
+              </div>
+              <div>
+                <div className="l">Outstanding</div>
+                <div className={'v' + (data.outstanding > 0 ? ' warn' : '')}>
+                  {formatMoney({ amount: data.outstanding, currency: 'USD' })}
+                </div>
+                <div className="s">Pending + overdue</div>
+              </div>
+              <div>
+                <div className="l">Assigned deals</div>
+                <div className="v">{data.assignedDeals.length}</div>
+                <div className="s">{data.isActive ? 'Currently competing' : 'Not competing'}</div>
+              </div>
+            </div>
+
+            <div className="op-h">
+              <h3>Profile</h3>
+              <div className="h-meta">athlete record</div>
+            </div>
+            <div className="op-kv-grid">
+              <Kv k="Status" v={data.athlete.status} />
+              <Kv k="Sport" v={data.athlete.stats.sport} />
+              <Kv k="Position" v={data.athlete.stats.position ?? '—'} />
+              <Kv k="Season" v={data.athlete.stats.season ?? '—'} />
+              <Kv k="Recruiter" v={recruiterName(data.athlete.recruiterId)} />
+              <Kv k="Competing" v={data.isActive ? 'Yes' : 'No'} />
+            </div>
+
+            {Object.keys(data.athlete.stats.metrics).length > 0 && (
+              <>
+                <div className="op-h">
+                  <h3>Performance metrics</h3>
+                  <div className="h-meta">{data.athlete.stats.season ?? 'season'}</div>
+                </div>
+                <div className="op-kv-grid">
+                  {Object.entries(data.athlete.stats.metrics).map(([k, v]) => (
+                    <Kv key={k} k={k} v={String(v)} />
+                  ))}
+                </div>
+              </>
+            )}
+
+            <div className="op-h">
+              <h3>Assigned deals</h3>
+              <div className="h-meta">
+                <b>{data.assignedDeals.length}</b> total
+              </div>
+            </div>
+            <div className="op-card" style={{ overflow: 'hidden' }}>
               {data.assignedDeals.length === 0 ? (
-                <div className="state-box">No deals for this athlete.</div>
+                <div className="op-state">
+                  <span className="glyph">∅</span>
+                  <span>No deals for this athlete.</span>
+                </div>
               ) : (
-                <table>
+                <table className="op-table">
                   <thead>
                     <tr>
-                      <th>Value</th>
+                      <th>Deal</th>
                       <th>Status</th>
-                      <th>Term</th>
+                      <th className="right">Value</th>
+                      <th className="right">Term</th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.assignedDeals.map((d) => (
                       <tr key={d.id}>
-                        <td>{formatMoneyCompact(d.value)}</td>
+                        <td className="strong mono">{d.id.toUpperCase()}</td>
                         <td>
-                          <StatusBadge kind="deal" value={d.status} />
+                          <StatusTag tone={DEAL_TONE[d.status]} label={d.status} />
                         </td>
-                        <td>
+                        <td className="right strong num">{formatMoneyCompact(d.value)}</td>
+                        <td className="right" style={{ fontFamily: 'var(--mono)' }}>
                           {formatDate(d.startDate)} → {formatDate(d.endDate)}
                         </td>
                       </tr>
@@ -155,6 +174,13 @@ export function AthleteDetailView() {
                   </tbody>
                 </table>
               )}
+            </div>
+
+            <div className="op-edit-trail">
+              <span>
+                Record <b>{data.athlete.id.toUpperCase()}</b>
+              </span>
+              <span>Recruiter {recruiterName(data.athlete.recruiterId)}</span>
             </div>
           </>
         )}
@@ -166,10 +192,7 @@ export function AthleteDetailView() {
             <input value={fName} onChange={(e) => setFName(e.target.value)} />
           </Field>
           <Field label="Status">
-            <select
-              value={fStatus}
-              onChange={(e) => setFStatus(e.target.value as AthleteStatus)}
-            >
+            <select value={fStatus} onChange={(e) => setFStatus(e.target.value as AthleteStatus)}>
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {s}
@@ -180,16 +203,26 @@ export function AthleteDetailView() {
           <Field label="Position">
             <input value={fPosition} onChange={(e) => setFPosition(e.target.value)} />
           </Field>
-          {saveError && <div className="inline-error">{saveError}</div>}
+          {saveError && <div className="op-inline-error">{saveError}</div>}
           <button
-            className="btn btn-primary"
+            className="op-btn op-btn-primary"
+            style={{ height: 30, marginTop: 4 }}
             disabled={saving || !fName.trim()}
             onClick={submitEdit}
           >
-            {saving ? 'Saving…' : 'Save Changes'}
+            {saving ? 'Saving…' : 'Save changes'}
           </button>
         </Modal>
       )}
+    </div>
+  );
+}
+
+function Kv({ k, v }: { k: string; v: string }) {
+  return (
+    <div className="op-kv">
+      <div className="k">{k}</div>
+      <div className="v">{v}</div>
     </div>
   );
 }

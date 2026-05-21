@@ -1,11 +1,9 @@
 import type { ReactNode } from 'react';
 
 /**
- * Renders the standard loading / error / empty states for any async view.
- *
- * If a `skeleton` node is supplied it is shown while loading (preferred for
- * lists and card grids); otherwise a centered spinner is used. Either way a
- * loading state is always visible against the mock provider's latency.
+ * Standard loading / error / empty states for any async view.
+ * If a `skeleton` node is supplied it is shown while loading; otherwise a
+ * centered spinner is used.
  */
 export function AsyncBoundary({
   loading,
@@ -27,18 +25,20 @@ export function AsyncBoundary({
   if (loading) {
     if (skeleton) return <>{skeleton}</>;
     return (
-      <div className="state-box">
-        <span className="spinner" /> Loading…
+      <div className="op-state">
+        <span className="op-spinner" />
+        <span>Loading…</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="state-box error-box">
+      <div className="op-state error">
+        <span className="glyph">!</span>
         <span>{error}</span>
         {onRetry && (
-          <button className="btn" onClick={onRetry}>
+          <button className="op-btn" onClick={onRetry}>
             Retry
           </button>
         )}
@@ -47,7 +47,12 @@ export function AsyncBoundary({
   }
 
   if (isEmpty) {
-    return <div className="state-box">{emptyText ?? 'Nothing to show.'}</div>;
+    return (
+      <div className="op-state">
+        <span className="glyph">∅</span>
+        <span>{emptyText ?? 'Nothing to show.'}</span>
+      </div>
+    );
   }
 
   return <>{children}</>;

@@ -81,7 +81,7 @@ export function DealBoardView() {
   }
 
   return (
-    <div>
+    <div className="op-legacy">
       <PageHeader
         title="NIL Deals"
         subtitle="NIL contract pipeline and revenue tracking"

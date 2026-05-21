@@ -12,7 +12,7 @@ export function DealDetailView() {
   const today = todayISO();
 
   return (
-    <div>
+    <div className="op-legacy">
       <PageHeader
         title={data ? `${data.athleteName} — NIL Deal` : 'NIL Deal'}
         subtitle="Contract, payment schedule and documents"

@@ -31,7 +31,7 @@ export function SettingsView() {
   const { user } = useAuth();
 
   return (
-    <div>
+    <div className="op-legacy">
       <PageHeader
         title="Settings"
         subtitle="Workspace configuration and access policy."

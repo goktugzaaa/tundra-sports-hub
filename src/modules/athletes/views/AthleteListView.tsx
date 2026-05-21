@@ -31,8 +31,9 @@ export function AthleteListView() {
   const [recruiter, setRecruiter] = useState<'all' | string>('all');
   const [page, setPage] = useState(0);
 
-  // ── New-athlete form state ──
+  // ── New-athlete wizard state ──
   const [showNew, setShowNew] = useState(false);
+  const [step, setStep] = useState(1);
   const [fName, setFName] = useState('');
   const [fStatus, setFStatus] = useState<AthleteStatus>('active');
   const [fRecruiter, setFRecruiter] = useState(user.recruiterId ?? RECRUITERS[0]?.recruiterId ?? '');
@@ -98,7 +99,10 @@ export function AthleteListView() {
           <button
             className="btn btn-primary"
             disabled={!canCreate}
-            onClick={() => setShowNew(true)}
+            onClick={() => {
+              setStep(1);
+              setShowNew(true);
+            }}
           >
             + New Athlete
           </button>
@@ -205,56 +209,128 @@ export function AthleteListView() {
 
       {showNew && (
         <Modal title="New Athlete" onClose={() => setShowNew(false)}>
-          <Field label="Full name">
-            <input
-              value={fName}
-              placeholder="e.g. Owen Carter"
-              onChange={(e) => setFName(e.target.value)}
-            />
-          </Field>
-          <Field label="Status">
-            <select
-              value={fStatus}
-              onChange={(e) => setFStatus(e.target.value as AthleteStatus)}
-            >
-              {STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Recruiter">
-            <select
-              value={recruiterLocked ? (user.recruiterId as string) : fRecruiter}
-              disabled={recruiterLocked}
-              onChange={(e) => setFRecruiter(e.target.value)}
-            >
-              {RECRUITERS.map((r) => (
-                <option key={r.recruiterId} value={r.recruiterId}>
-                  {r.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Sport">
-            <input value={fSport} onChange={(e) => setFSport(e.target.value)} />
-          </Field>
-          <Field label="Position">
-            <input
-              value={fPosition}
-              placeholder="e.g. Striker"
-              onChange={(e) => setFPosition(e.target.value)}
-            />
-          </Field>
+          <div className="wizard-steps">
+            {[1, 2, 3].map((s) => (
+              <span
+                key={s}
+                className={'wstep' + (s === step ? ' active' : s < step ? ' done' : '')}
+              />
+            ))}
+            <span className="wstep-label">
+              Step {step} of 3 ·{' '}
+              {step === 1 ? 'Identity' : step === 2 ? 'Profile' : 'Review'}
+            </span>
+          </div>
+
+          {step === 1 && (
+            <>
+              <Field label="Full name">
+                <input
+                  autoFocus
+                  value={fName}
+                  placeholder="e.g. Owen Carter"
+                  onChange={(e) => setFName(e.target.value)}
+                />
+              </Field>
+              <Field label="Recruiter">
+                <select
+                  value={recruiterLocked ? (user.recruiterId as string) : fRecruiter}
+                  disabled={recruiterLocked}
+                  onChange={(e) => setFRecruiter(e.target.value)}
+                >
+                  {RECRUITERS.map((r) => (
+                    <option key={r.recruiterId} value={r.recruiterId}>
+                      {r.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <Field label="Status">
+                <select
+                  value={fStatus}
+                  onChange={(e) => setFStatus(e.target.value as AthleteStatus)}
+                >
+                  {STATUSES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Sport">
+                <input value={fSport} onChange={(e) => setFSport(e.target.value)} />
+              </Field>
+              <Field label="Position">
+                <input
+                  value={fPosition}
+                  placeholder="e.g. Striker"
+                  onChange={(e) => setFPosition(e.target.value)}
+                />
+              </Field>
+            </>
+          )}
+
+          {step === 3 && (
+            <div>
+              <div className="detail-row">
+                <span className="k">Name</span>
+                <span>{fName || '—'}</span>
+              </div>
+              <div className="detail-row">
+                <span className="k">Recruiter</span>
+                <span>
+                  {recruiterName(recruiterLocked ? (user.recruiterId as string) : fRecruiter)}
+                </span>
+              </div>
+              <div className="detail-row">
+                <span className="k">Status</span>
+                <span>{fStatus}</span>
+              </div>
+              <div className="detail-row">
+                <span className="k">Sport</span>
+                <span>{fSport}</span>
+              </div>
+              <div className="detail-row">
+                <span className="k">Position</span>
+                <span>{fPosition || '—'}</span>
+              </div>
+            </div>
+          )}
+
           {saveError && <div className="inline-error">{saveError}</div>}
-          <button
-            className="btn btn-primary"
-            disabled={saving || !fName.trim()}
-            onClick={submitNew}
-          >
-            {saving ? 'Creating…' : 'Create Athlete'}
-          </button>
+
+          <div className="wizard-actions">
+            {step > 1 && (
+              <button className="btn" onClick={() => setStep(step - 1)}>
+                ← Back
+              </button>
+            )}
+            <div style={{ marginLeft: 'auto' }}>
+              {step < 3 && (
+                <button
+                  className="btn btn-primary"
+                  disabled={step === 1 && !fName.trim()}
+                  onClick={() => setStep(step + 1)}
+                >
+                  Next →
+                </button>
+              )}
+              {step === 3 && (
+                <button
+                  className="btn btn-primary"
+                  disabled={saving || !fName.trim()}
+                  onClick={submitNew}
+                >
+                  {saving ? 'Creating…' : 'Create Athlete'}
+                </button>
+              )}
+            </div>
+          </div>
         </Modal>
       )}
     </div>

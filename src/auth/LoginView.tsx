@@ -34,11 +34,11 @@ export function LoginView() {
   return (
     <div className="auth-split">
       <aside className="auth-brand">
-        <div className="brand">
-          <div className="brand-mark">T</div>
+        <div className="auth-brandmark">
+          <img className="auth-logo" src="/logo.svg" alt="Tundra Sports" />
           <div>
-            <div className="brand-name">Tundra</div>
-            <div className="brand-sub">Sports Hub</div>
+            <div className="brand-name">Tundra Sports</div>
+            <div className="brand-sub">Hub</div>
           </div>
         </div>
 

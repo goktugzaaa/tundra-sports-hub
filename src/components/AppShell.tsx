@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { RoleSwitcher } from './RoleSwitcher';
+import { CommandPalette } from './CommandPalette';
 import { useAuth } from '../auth/AuthContext';
 import { canAccess, type Resource } from '../rbac';
 import { ACTIVE_BACKEND } from '../services';
@@ -54,17 +56,18 @@ const NAV_GROUPS: NavGroup[] = [
 
 /**
  * App layout: sidebar (brand · grouped nav · environment) · topbar
- * (workspace + identity) · routed content. Nav items the user cannot
- * access are hidden; a group with no visible items is dropped entirely.
+ * (search + workspace + identity) · routed content. Responsive — the
+ * sidebar becomes an off-canvas drawer below 900px.
  */
 export function AppShell() {
   const { user } = useAuth();
+  const [navOpen, setNavOpen] = useState(false);
 
   return (
-    <div className="app-shell">
+    <div className={'app-shell' + (navOpen ? ' nav-open' : '')}>
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark">T</div>
+          <img className="brand-logo" src="/logo.svg" alt="Tundra Sports" />
           <div>
             <div className="brand-name">Tundra</div>
             <div className="brand-sub">Sports Hub</div>
@@ -85,6 +88,7 @@ export function AppShell() {
                     key={item.to}
                     to={item.to}
                     end={item.end}
+                    onClick={() => setNavOpen(false)}
                     className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}
                   >
                     {navIcons[item.icon]}
@@ -99,22 +103,40 @@ export function AppShell() {
         <div className="sidebar-foot">
           <div className="env-chip">
             <span className="env-dot" />
-            <span>
-              {ACTIVE_BACKEND === 'mock' ? 'Mock data' : 'Airtable'} · V1
-            </span>
+            <span>{ACTIVE_BACKEND === 'mock' ? 'Mock data' : 'Airtable'} · V1</span>
           </div>
         </div>
       </aside>
 
       <div className="main-col">
         <header className="topbar">
-          <span className="topbar-ws">Tundra Sports Group</span>
-          <RoleSwitcher />
+          <div className="topbar-left">
+            <button
+              className="nav-toggle"
+              aria-label="Toggle navigation"
+              onClick={() => setNavOpen((o) => !o)}
+            >
+              ☰
+            </button>
+            <span className="topbar-ws">Tundra Sports Group</span>
+          </div>
+          <div className="topbar-right">
+            <button
+              className="topbar-search"
+              onClick={() => window.dispatchEvent(new Event('tundra:search'))}
+            >
+              <span>Search</span> <kbd>⌘K</kbd>
+            </button>
+            <RoleSwitcher />
+          </div>
         </header>
         <main className="main">
           <Outlet />
         </main>
       </div>
+
+      {navOpen && <div className="nav-backdrop" onClick={() => setNavOpen(false)} />}
+      <CommandPalette />
     </div>
   );
 }

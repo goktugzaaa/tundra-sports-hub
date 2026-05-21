@@ -67,7 +67,7 @@ export function AppShell() {
     <div className={'app-shell' + (navOpen ? ' nav-open' : '')}>
       <aside className="sidebar">
         <div className="brand">
-          <img className="brand-logo" src="/logo.svg" alt="Tundra Sports" />
+          <img className="brand-logo" src="/logo.png" alt="Tundra Sports" />
           <div>
             <div className="brand-name">Tundra</div>
             <div className="brand-sub">Sports Hub</div>

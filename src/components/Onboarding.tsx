@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 
 const SEEN_KEY = 'tundra:onboarded:v2';
-const CARD_W = 304;
+const CARD_W = 372;
 
 interface Step {
   /** CSS selector of the element to spotlight. Omit for a centered card. */

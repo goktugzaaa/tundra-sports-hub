@@ -15,4 +15,6 @@ export interface Prospect {
   /** Recruiter responsible for this prospect — drives RBAC scoping. */
   assignedRecruiter: ID;
   notes: string;
+  /** Set once a signed prospect has been converted into an athlete. */
+  convertedAthleteId?: ID;
 }

@@ -36,7 +36,8 @@ export const CAPABILITIES: Record<Role, Capability> = {
     prospect: [],
     deal: READ,
     payment: READ,
-    task: READ,
+    // Athletes may advance their own task status (scoped in the service layer).
+    task: ['read', 'update'],
     compliance: READ,
     document: READ,
   },

@@ -27,7 +27,7 @@ const ORDER: ProspectStage[] = [
  * domain service via the hook.
  */
 export function ProspectPipelineView() {
-  const { data, loading, error, reload, canMove, moveStage, movingId, moveError } =
+  const { data, loading, error, reload, canMove, canConvert, moveStage, convert, movingId, moveError } =
     useProspects();
   const [filter, setFilter] = useState<ProspectStage | 'all'>('all');
 
@@ -126,6 +126,23 @@ export function ProspectPipelineView() {
                           >
                             Reject
                           </button>
+                        </div>
+                      )}
+                      {p.stage === 'signed' && (
+                        <div className="pr-actions">
+                          {p.convertedAthleteId ? (
+                            <span className="badge badge-green">Converted to athlete</span>
+                          ) : (
+                            canConvert && (
+                              <button
+                                className="btn btn-primary"
+                                disabled={busy}
+                                onClick={() => convert(p)}
+                              >
+                                {busy ? 'Converting…' : 'Convert to Athlete'}
+                              </button>
+                            )
+                          )}
                         </div>
                       )}
                     </div>

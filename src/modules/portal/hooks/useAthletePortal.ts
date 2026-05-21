@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useAuth } from '../../../auth/AuthContext';
 import { useDataService } from '../../../services';
 import { useAsyncData } from '../../../hooks/useAsyncData';
+import { canAccess } from '../../../rbac';
 import {
   athletesDomain,
   taskRules,
@@ -26,15 +28,15 @@ export interface AthletePortalData {
 }
 
 /**
- * Athlete portal hook — assembles the signed-in athlete's personal view.
- * Every collection is RBAC-scoped to that athlete by the service layer.
+ * Athlete portal hook — assembles the signed-in athlete's personal view
+ * and lets them advance their own tasks. RBAC-scoped by the service layer.
  */
 export function useAthletePortal() {
   const service = useDataService();
   const { user } = useAuth();
   const today = todayISO();
 
-  return useAsyncData<AthletePortalData | null>(async () => {
+  const state = useAsyncData<AthletePortalData | null>(async () => {
     if (!user.athleteId) return null;
     const [athlete, deals, payments, compliance, tasks] = await Promise.all([
       service.athletes.getById(user.athleteId),
@@ -56,4 +58,23 @@ export function useAthletePortal() {
         .length,
     };
   }, [user]);
+
+  const canActTask = canAccess(user, 'task', 'update');
+  const [busyTask, setBusyTask] = useState<string | null>(null);
+
+  /** Advance one of the athlete's own tasks through the status cycle. */
+  async function toggleTask(task: Task): Promise<void> {
+    if (!canActTask) return;
+    setBusyTask(task.id);
+    try {
+      await service.tasks.update(task.id, {
+        status: taskRules.toggleStatus(task.status),
+      });
+      state.reload();
+    } finally {
+      setBusyTask(null);
+    }
+  }
+
+  return { ...state, canActTask, toggleTask, busyTask };
 }

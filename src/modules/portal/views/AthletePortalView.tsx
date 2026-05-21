@@ -10,7 +10,8 @@ import { useAthletePortal } from '../hooks/useAthletePortal';
  * "my payments", "my compliance".
  */
 export function AthletePortalView() {
-  const { data, loading, error, reload } = useAthletePortal();
+  const { data, loading, error, reload, canActTask, toggleTask, busyTask } =
+    useAthletePortal();
   const today = todayISO();
 
   return (
@@ -129,7 +130,18 @@ export function AthletePortalView() {
                         <div className="pr-main">{t.title}</div>
                         <div className="pr-meta">Due {formatDate(t.dueDate)}</div>
                       </div>
-                      <StatusBadge kind="task" value={t.status} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <StatusBadge kind="task" value={t.status} />
+                        {canActTask && t.status !== 'done' && (
+                          <button
+                            className="btn"
+                            disabled={busyTask === t.id}
+                            onClick={() => void toggleTask(t)}
+                          >
+                            {busyTask === t.id ? '…' : 'Advance'}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

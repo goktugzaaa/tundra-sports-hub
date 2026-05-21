@@ -1,4 +1,5 @@
 import type { Prospect, ProspectStage } from './types';
+import type { Athlete } from '../athlete/types';
 import { err, ok, type Result } from '../shared/types';
 
 /**
@@ -29,6 +30,20 @@ export function moveProspectStage(
     return err('A signed prospect cannot change stage.');
   }
   return ok({ ...prospect, stage: newStage });
+}
+
+/**
+ * Map a signed prospect onto a new athlete record. Carries name and the
+ * owning recruiter; the rest starts as a fresh profile the agency fills in.
+ */
+export function prospectToAthlete(prospect: Prospect): Omit<Athlete, 'id'> {
+  return {
+    name: prospect.name,
+    status: 'active',
+    recruiterId: prospect.assignedRecruiter,
+    stats: { sport: 'Football', season: '2025-26', metrics: {} },
+    metadata: { convertedFromProspect: prospect.id },
+  };
 }
 
 /** Count of prospects per stage — for pipeline summary widgets. */

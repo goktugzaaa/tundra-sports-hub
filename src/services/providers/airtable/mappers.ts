@@ -92,6 +92,7 @@ export const prospectMapper = {
       stage: str(f, 'stage') as ProspectStage,
       assignedRecruiter: str(f, 'assignedRecruiter'),
       notes: str(f, 'notes'),
+      convertedAthleteId: optStr(f, 'convertedAthleteId'),
     };
   },
   toFields(data: Partial<Prospect>): Fields {
@@ -100,6 +101,7 @@ export const prospectMapper = {
       stage: data.stage,
       assignedRecruiter: data.assignedRecruiter,
       notes: data.notes,
+      convertedAthleteId: data.convertedAthleteId,
     });
   },
 };

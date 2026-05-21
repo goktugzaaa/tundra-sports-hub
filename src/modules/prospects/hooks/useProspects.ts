@@ -19,6 +19,25 @@ export function useProspects() {
   const [moveError, setMoveError] = useState<string | null>(null);
 
   const canMove = canAccess(user, 'prospect', 'update');
+  const canConvert = canAccess(user, 'athlete', 'create') && canMove;
+
+  /** Convert a signed prospect into a new athlete record. */
+  async function convert(prospect: Prospect) {
+    if (!canConvert || prospect.convertedAthleteId) return;
+    setMoveError(null);
+    setMovingId(prospect.id);
+    try {
+      const athlete = await service.athletes.create(
+        prospectsDomain.prospectToAthlete(prospect),
+      );
+      await service.prospects.update(prospect.id, { convertedAthleteId: athlete.id });
+      state.reload();
+    } catch (e) {
+      setMoveError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setMovingId(null);
+    }
+  }
 
   async function moveStage(prospect: Prospect, newStage: ProspectStage) {
     if (!canMove) return;
@@ -41,5 +60,5 @@ export function useProspects() {
     }
   }
 
-  return { ...state, canMove, moveStage, movingId, moveError };
+  return { ...state, canMove, canConvert, moveStage, convert, movingId, moveError };
 }

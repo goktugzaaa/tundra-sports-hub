@@ -4,7 +4,7 @@ import { useDataService } from '../../../services';
 import { useAsyncData } from '../../../hooks/useAsyncData';
 import { useMutation } from '../../../hooks/useMutation';
 import { canAccess } from '../../../rbac';
-import type { Deal, DealStatus } from '../../../domain';
+import { paymentsDomain, type Deal, type DealStatus } from '../../../domain';
 
 export interface DealsView {
   deals: Deal[];
@@ -30,8 +30,19 @@ export function useDeals() {
   const mutation = useMutation();
   const [movingId, setMovingId] = useState<string | null>(null);
 
-  async function create(data: Omit<Deal, 'id'>): Promise<boolean> {
-    const done = await mutation.run(() => service.deals.create(data));
+  /**
+   * Create a deal. If `installments > 0` and the user may create payments,
+   * an installment schedule is generated and linked to the new deal.
+   */
+  async function create(data: Omit<Deal, 'id'>, installments = 0): Promise<boolean> {
+    const done = await mutation.run(async () => {
+      const deal = await service.deals.create(data);
+      if (installments > 0 && canAccess(user, 'payment', 'create')) {
+        for (const payment of paymentsDomain.buildPaymentSchedule(deal, installments)) {
+          await service.payments.create(payment);
+        }
+      }
+    });
     if (done) state.reload();
     return done;
   }

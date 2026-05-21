@@ -1,4 +1,5 @@
 import type { Payment } from './types';
+import type { Deal } from '../deal/types';
 import { effectiveStatus } from './rules';
 
 /**
@@ -49,4 +50,31 @@ export function getMonthlyRevenue(payments: Payment[], yearMonth: string): numbe
   return payments
     .filter((p) => p.status === 'paid' && p.dueDate.startsWith(yearMonth))
     .reduce((sum, p) => sum + p.amount.amount, 0);
+}
+
+/**
+ * Build an installment payment schedule for a deal — splits the contract
+ * value into `installments` equal pending payments, with due dates spread
+ * evenly across the deal term. Each payment is linked back to the deal.
+ */
+export function buildPaymentSchedule(
+  deal: Deal,
+  installments: number,
+): Omit<Payment, 'id'>[] {
+  const n = Math.max(1, Math.floor(installments));
+  const total = deal.value.amount;
+  const per = Math.round(total / n);
+  const start = Date.parse(deal.startDate);
+  const span = Date.parse(deal.endDate) - start;
+
+  return Array.from({ length: n }, (_, i) => ({
+    athleteId: deal.athleteId,
+    dealId: deal.id,
+    amount: {
+      amount: i === n - 1 ? total - per * (n - 1) : per,
+      currency: deal.value.currency,
+    },
+    dueDate: new Date(start + (span * (i + 1)) / n).toISOString().slice(0, 10),
+    status: 'pending' as const,
+  }));
 }

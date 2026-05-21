@@ -50,6 +50,7 @@ export function DealBoardView() {
   const [fStatus, setFStatus] = useState<DealStatus>('negotiation');
   const [fStart, setFStart] = useState('');
   const [fEnd, setFEnd] = useState('');
+  const [fInstallments, setFInstallments] = useState('3');
 
   const deals = data?.deals ?? [];
   const athletes = data ? Object.entries(data.athleteName) : [];
@@ -68,7 +69,7 @@ export function DealBoardView() {
       startDate: fStart,
       endDate: fEnd,
     };
-    const done = await create(payload);
+    const done = await create(payload, Number(fInstallments) || 0);
     if (done) {
       setShowNew(false);
       setFAthlete('');
@@ -263,6 +264,14 @@ export function DealBoardView() {
           </Field>
           <Field label="End date">
             <input type="date" value={fEnd} onChange={(e) => setFEnd(e.target.value)} />
+          </Field>
+          <Field label="Payment installments (0 = none)">
+            <input
+              type="number"
+              min="0"
+              value={fInstallments}
+              onChange={(e) => setFInstallments(e.target.value)}
+            />
           </Field>
           {saveError && <div className="inline-error">{saveError}</div>}
           <button

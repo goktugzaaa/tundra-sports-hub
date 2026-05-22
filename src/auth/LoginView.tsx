@@ -1,23 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import { useSession } from './AuthContext';
 import { initials } from '../ui/ops';
-import type { User } from './types';
-
-/** Role → portrait shown on the right edge when an account is hovered. */
-const ROLE_PHOTO: Record<string, string> = {
-  ADMIN:
-    'https://images.unsplash.com/photo-1614786269829-d24616faf56d?auto=format&fit=crop&w=560&h=1120&q=80',
-  RECRUITER:
-    'https://images.unsplash.com/photo-1543269664-56d93c1b41a6?auto=format&fit=crop&w=560&h=1120&q=80',
-  ATHLETE:
-    'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=560&h=1120&q=80',
-};
 
 /**
- * Split sign-in screen.
- *  - mock auth → vertical account picker; hovering a row reveals a
- *    role portrait sliding in from the right edge of the brand panel.
- *  - real auth → email / password form.
+ * Split sign-in screen — branded panel + entry.
+ *  - mock auth  → one-click demo account picker
+ *  - real auth  → email / password form
+ * Shown by <AuthGate> while the session is anonymous.
  */
 export function LoginView() {
   const { signIn, authMode, availableUsers } = useSession();
@@ -25,7 +14,6 @@ export function LoginView() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [hover, setHover] = useState<User | null>(null);
 
   async function run(fn: () => Promise<void>) {
     setBusy(true);
@@ -45,41 +33,71 @@ export function LoginView() {
   }
 
   return (
-    <div className="op-auth">
-      <main className="op-auth-picker">
+    <div className="auth-split">
+      <aside className="auth-brand">
+        <div className="auth-brandmark">
+          <img className="auth-logo" src="/logo.png" alt="Tundra Sports" />
+        </div>
+
+        <div className="auth-tag">
+          The operating system for a <em>football agency</em>.
+        </div>
+        <p className="auth-lede">
+          Athletes, NIL deals, payments, compliance and recruiting — one
+          high-trust workspace for Tundra Sports Group.
+        </p>
+
+        <div className="auth-stats">
+          <div className="auth-stat">
+            <div className="n">8</div>
+            <div className="l">Modules</div>
+          </div>
+          <div className="auth-stat">
+            <div className="n">3</div>
+            <div className="l">Access tiers</div>
+          </div>
+          <div className="auth-stat">
+            <div className="n">RBAC</div>
+            <div className="l">Scoped data</div>
+          </div>
+        </div>
+      </aside>
+
+      <main className="auth-form">
         {authMode === 'mock' ? (
           <>
-            <h1>Choose a workspace</h1>
-            <p className="sub">
-              Demo environment — pick a role to enter. Live RBAC scopes every
-              screen to the account.
+            <div className="op-pick-eyebrow">Tundra Hub — sign in</div>
+            <div className="op-pick-title">Choose a workspace</div>
+            <p className="op-pick-sub">
+              Pick a role to enter. Every screen is scoped to the account you choose.
             </p>
-            <div className="op-acct-list" onMouseLeave={() => setHover(null)}>
-              {availableUsers.map((u) => (
+            <div className="op-pick-list">
+              {availableUsers.map((u, i) => (
                 <button
                   key={u.id}
-                  className="op-acct"
+                  className="op-pick-row"
                   disabled={busy}
-                  onMouseEnter={() => setHover(u)}
-                  onFocus={() => setHover(u)}
                   onClick={() => void run(() => signIn(u.email ?? '', ''))}
                 >
-                  <span className="av">{initials(u.name)}</span>
-                  <span className="meta">
-                    <span className="an">{u.name}</span>
-                    <span className="ar">{u.role}</span>
+                  <span className="pk-av">{initials(u.name)}</span>
+                  <span className="pk-meta">
+                    <span className="pk-name">
+                      {u.name}
+                      {i === 0 && <span className="pk-flag">Last used</span>}
+                    </span>
+                    <span className="pk-role">{u.role}</span>
                   </span>
-                  <span className="ag">→</span>
+                  <span className="pk-go">↵</span>
                 </button>
               ))}
             </div>
-            {error && <div className="op-auth-err">{error}</div>}
+            {error && <div className="inline-error">{error}</div>}
           </>
         ) : (
-          <form className="op-auth-form" onSubmit={submitForm}>
-            <h1>Sign in</h1>
+          <form onSubmit={submitForm}>
+            <h2>Sign in</h2>
             <p className="sub">Internal platform — Tundra Sports Group.</p>
-            <div className="op-field">
+            <div className="field">
               <label>Email</label>
               <input
                 type="email"
@@ -89,7 +107,7 @@ export function LoginView() {
                 placeholder="you@tundra.dev"
               />
             </div>
-            <div className="op-field">
+            <div className="field">
               <label>Password</label>
               <input
                 type="password"
@@ -98,10 +116,9 @@ export function LoginView() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            {error && <div className="op-auth-err">{error}</div>}
+            {error && <div className="inline-error">{error}</div>}
             <button
-              className="op-btn op-btn-primary"
-              style={{ height: 36, marginTop: 8 }}
+              className="btn btn-primary"
               disabled={busy || !email || !password}
             >
               {busy ? 'Signing in…' : 'Sign in'}
@@ -109,41 +126,6 @@ export function LoginView() {
           </form>
         )}
       </main>
-
-      <aside className="op-auth-stage">
-        <img className="op-stage-logo" src="/logo.png" alt="Tundra Sports" />
-        <div className="op-stage-tag">
-          The operating system for a <em>football agency</em>.
-        </div>
-        <p className="op-stage-lede">
-          Athletes, NIL deals, payments, compliance and recruiting — one calm,
-          high-trust workspace for Tundra Sports Group.
-        </p>
-        <div className="op-stage-points">
-          <div>
-            <div className="pv">9</div>
-            <div className="pl">Modules</div>
-          </div>
-          <div>
-            <div className="pv">3</div>
-            <div className="pl">Roles</div>
-          </div>
-          <div>
-            <div className="pv">RBAC</div>
-            <div className="pl">Scoped data</div>
-          </div>
-        </div>
-
-        <div className={'op-auth-photo' + (hover ? ' show' : '')}>
-          {hover && (
-            <img key={hover.role} src={ROLE_PHOTO[hover.role]} alt="" />
-          )}
-          <div className="cap">
-            <div className="cn">{hover?.name ?? ''}</div>
-            <div className="cr">{hover?.role ?? ''}</div>
-          </div>
-        </div>
-      </aside>
     </div>
   );
 }

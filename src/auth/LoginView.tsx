@@ -1,30 +1,23 @@
 import { useState, type FormEvent } from 'react';
 import { useSession } from './AuthContext';
-import { Ic, initials } from '../ui/ops';
+import { initials } from '../ui/ops';
+import type { User } from './types';
 
-/** Per-role presentation for the workspace picker. */
-const ROLE: Record<string, { icon: keyof typeof Ic; label: string; scope: string }> = {
-  ADMIN: {
-    icon: 'settings',
-    label: 'Admin',
-    scope: 'Full access — every module, every record across the agency.',
-  },
-  RECRUITER: {
-    icon: 'prospects',
-    label: 'Recruiter',
-    scope: 'Scoped to assigned athletes and their recruiting pipeline.',
-  },
-  ATHLETE: {
-    icon: 'athletes',
-    label: 'Athlete',
-    scope: 'Personal portal — own deals, payments and compliance only.',
-  },
+/** Role → portrait shown on the right edge when an account is hovered. */
+const ROLE_PHOTO: Record<string, string> = {
+  ADMIN:
+    'https://images.unsplash.com/photo-1614786269829-d24616faf56d?auto=format&fit=crop&w=560&h=1120&q=80',
+  RECRUITER:
+    'https://images.unsplash.com/photo-1543269664-56d93c1b41a6?auto=format&fit=crop&w=560&h=1120&q=80',
+  ATHLETE:
+    'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=560&h=1120&q=80',
 };
 
 /**
- * Split sign-in screen — branded panel + workspace picker.
- *  - mock auth → role-card picker (one click to enter)
- *  - real auth → email / password form
+ * Split sign-in screen.
+ *  - mock auth → vertical account picker; hovering a row reveals a
+ *    role portrait sliding in from the right edge of the brand panel.
+ *  - real auth → email / password form.
  */
 export function LoginView() {
   const { signIn, authMode, availableUsers } = useSession();
@@ -32,6 +25,7 @@ export function LoginView() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [hover, setHover] = useState<User | null>(null);
 
   async function run(fn: () => Promise<void>) {
     setBusy(true);
@@ -52,63 +46,32 @@ export function LoginView() {
 
   return (
     <div className="op-auth">
-      <aside className="op-auth-brand">
-        <img className="op-auth-logo" src="/logo.png" alt="Tundra Sports" />
-        <div className="op-auth-tag">
-          The operating system for a <em>football agency</em>.
-        </div>
-        <p className="op-auth-lede">
-          Athletes, NIL deals, payments, compliance and recruiting — one calm,
-          high-trust workspace for Tundra Sports Group.
-        </p>
-        <div className="op-auth-points">
-          <div>
-            <div className="pv">9</div>
-            <div className="pl">Modules</div>
-          </div>
-          <div>
-            <div className="pv">3</div>
-            <div className="pl">Roles</div>
-          </div>
-          <div>
-            <div className="pv">RBAC</div>
-            <div className="pl">Scoped data</div>
-          </div>
-        </div>
-      </aside>
-
-      <main className="op-auth-main">
+      <main className="op-auth-picker">
         {authMode === 'mock' ? (
           <>
             <h1>Choose a workspace</h1>
             <p className="sub">
               Demo environment — pick a role to enter. Live RBAC scopes every
-              screen to the account you choose.
+              screen to the account.
             </p>
-            <div className="op-auth-grid">
-              {availableUsers.map((u) => {
-                const role = ROLE[u.role] ?? ROLE.ADMIN;
-                const RoleIcon = Ic[role.icon];
-                return (
-                  <button
-                    key={u.id}
-                    className="op-role-card"
-                    disabled={busy}
-                    onClick={() => void run(() => signIn(u.email ?? '', ''))}
-                  >
-                    <span className="rc-top">
-                      <span className="rc-ico">
-                        <RoleIcon width={16} height={16} />
-                      </span>
-                      <span className="op-pill blue">{role.label}</span>
-                    </span>
-                    <span className="rc-avo">{initials(u.name)}</span>
-                    <span className="rc-name">{u.name}</span>
-                    <span className="rc-scope">{role.scope}</span>
-                    <span className="rc-go">Enter workspace →</span>
-                  </button>
-                );
-              })}
+            <div className="op-acct-list" onMouseLeave={() => setHover(null)}>
+              {availableUsers.map((u) => (
+                <button
+                  key={u.id}
+                  className="op-acct"
+                  disabled={busy}
+                  onMouseEnter={() => setHover(u)}
+                  onFocus={() => setHover(u)}
+                  onClick={() => void run(() => signIn(u.email ?? '', ''))}
+                >
+                  <span className="av">{initials(u.name)}</span>
+                  <span className="meta">
+                    <span className="an">{u.name}</span>
+                    <span className="ar">{u.role}</span>
+                  </span>
+                  <span className="ag">→</span>
+                </button>
+              ))}
             </div>
             {error && <div className="op-auth-err">{error}</div>}
           </>
@@ -145,8 +108,42 @@ export function LoginView() {
             </button>
           </form>
         )}
-        <div className="op-auth-foot">Tundra Hub · v1.0 · internal operations</div>
       </main>
+
+      <aside className="op-auth-stage">
+        <img className="op-stage-logo" src="/logo.png" alt="Tundra Sports" />
+        <div className="op-stage-tag">
+          The operating system for a <em>football agency</em>.
+        </div>
+        <p className="op-stage-lede">
+          Athletes, NIL deals, payments, compliance and recruiting — one calm,
+          high-trust workspace for Tundra Sports Group.
+        </p>
+        <div className="op-stage-points">
+          <div>
+            <div className="pv">9</div>
+            <div className="pl">Modules</div>
+          </div>
+          <div>
+            <div className="pv">3</div>
+            <div className="pl">Roles</div>
+          </div>
+          <div>
+            <div className="pv">RBAC</div>
+            <div className="pl">Scoped data</div>
+          </div>
+        </div>
+
+        <div className={'op-auth-photo' + (hover ? ' show' : '')}>
+          {hover && (
+            <img key={hover.role} src={ROLE_PHOTO[hover.role]} alt="" />
+          )}
+          <div className="cap">
+            <div className="cn">{hover?.name ?? ''}</div>
+            <div className="cr">{hover?.role ?? ''}</div>
+          </div>
+        </div>
+      </aside>
     </div>
   );
 }

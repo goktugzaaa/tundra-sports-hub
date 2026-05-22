@@ -1984,6 +1984,119 @@ svg { display: block; }
 .op-tour-card .tc-actions .op-btn { height: 34px; font-size: 13px; padding: 0 16px; }
 
 /* ============================================================
+   AUTH — sign-in / workspace picker
+   ============================================================ */
+.op-auth { min-height: 100vh; display: grid; grid-template-columns: 1.05fr 1fr; background: var(--bg); }
+.op-auth-brand {
+  background: var(--surface-alt);
+  border-right: 1px solid var(--line);
+  padding: 52px 56px 44px;
+  display: flex; flex-direction: column;
+  position: relative; overflow: hidden;
+}
+.op-auth-brand::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, var(--line-hard) 1px, transparent 0);
+  background-size: 28px 28px;
+  -webkit-mask-image: linear-gradient(155deg, #000 0%, transparent 64%);
+  mask-image: linear-gradient(155deg, #000 0%, transparent 64%);
+  opacity: 0.5; pointer-events: none;
+}
+.op-auth-brand > * { position: relative; }
+.op-auth-logo { height: 42px; width: auto; }
+.op-auth-tag {
+  font-size: 33px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.18;
+  margin-top: auto; max-width: 15ch;
+}
+.op-auth-tag em { font-style: normal; color: var(--accent); }
+.op-auth-lede {
+  font-size: 14px; color: var(--text-mid); line-height: 1.62;
+  margin-top: 16px; max-width: 40ch;
+}
+.op-auth-points {
+  display: flex; margin-top: 34px;
+  border-top: 1px solid var(--line); padding-top: 20px;
+}
+.op-auth-points > div {
+  flex: 1; border-right: 1px solid var(--line);
+  padding-right: 16px; margin-right: 16px;
+}
+.op-auth-points > div:last-child { border-right: none; margin-right: 0; }
+.op-auth-points .pv { font-size: 19px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+.op-auth-points .pl {
+  font-family: var(--mono); font-size: 10.5px; color: var(--text-dim);
+  text-transform: uppercase; letter-spacing: 0.6px; margin-top: 4px;
+}
+
+.op-auth-main {
+  padding: 52px 56px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.op-auth-main h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+.op-auth-main .sub {
+  font-size: 13.5px; color: var(--text-mid); line-height: 1.55;
+  margin-top: 8px; margin-bottom: 26px; max-width: 46ch;
+}
+
+.op-auth-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 540px; }
+.op-role-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px 18px 16px;
+  text-align: left; font-family: inherit; cursor: pointer;
+  display: flex; flex-direction: column;
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+.op-role-card:hover:not(:disabled) {
+  transform: translateY(-3px);
+  border-color: var(--accent-line);
+  box-shadow: 0 16px 38px -24px rgba(28, 28, 26, 0.55);
+}
+.op-role-card:disabled { opacity: 0.55; cursor: default; }
+.op-role-card .rc-top { display: flex; align-items: center; justify-content: space-between; }
+.op-role-card .rc-ico {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--accent-soft); border: 1px solid var(--accent-line);
+  color: var(--accent-ink);
+  display: flex; align-items: center; justify-content: center;
+}
+.op-role-card .rc-avo {
+  width: 36px; height: 36px; border-radius: 7px;
+  background: var(--surface-sunk); border: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 13px; color: var(--ink);
+  margin-top: 18px;
+}
+.op-role-card .rc-name { font-size: 15px; font-weight: 600; color: var(--ink); margin-top: 11px; }
+.op-role-card .rc-scope {
+  font-size: 12px; color: var(--text-mid); line-height: 1.5;
+  margin-top: 5px; min-height: 54px;
+}
+.op-role-card .rc-go {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: var(--accent);
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line-soft);
+  transition: gap 0.15s ease;
+}
+.op-role-card:hover:not(:disabled) .rc-go { gap: 10px; }
+
+.op-auth-err { color: var(--alert); font-size: 12.5px; margin-top: 14px; }
+.op-auth-form { max-width: 340px; }
+.op-auth-form .op-field { margin-bottom: 14px; }
+.op-auth-foot {
+  font-family: var(--mono); font-size: 11px; color: var(--text-faint);
+  margin-top: 30px; letter-spacing: 0.3px;
+}
+
+@media (max-width: 860px) {
+  .op-auth { grid-template-columns: 1fr; }
+  .op-auth-brand { display: none; }
+  .op-auth-main { padding: 44px 26px; }
+  .op-auth-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
    STATE BLOCKS
    ============================================================ */
 .op-state {

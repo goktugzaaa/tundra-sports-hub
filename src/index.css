@@ -1483,7 +1483,7 @@ svg { display: block; }
   color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.3px;
 }
 .op-week .day.today .d { color: var(--accent-ink); font-weight: 600; }
-.op-week .day .e { color: var(--text); }
+.op-week .day .e { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .op-week .day .e.muted { color: var(--text-dim); }
 
 /* ============================================================
@@ -1778,7 +1778,7 @@ svg { display: block; }
 
 /* content scroll host + page wrappers */
 .op-content { flex: 1; min-height: 0; overflow: auto; position: relative; }
-.op-legacy { padding: 22px 28px 44px; max-width: 1240px; }
+.op-legacy { padding: 22px 28px 44px; max-width: 1240px; margin: 0 auto; }
 .op-today { display: grid; grid-template-columns: 1fr 320px; min-height: 100%; }
 .op-today > .primary { padding: 22px 28px 32px; min-width: 0; }
 .op-today > .aside {

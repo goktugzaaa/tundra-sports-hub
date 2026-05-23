@@ -193,7 +193,6 @@ export function AppShell() {
             ))}
           </div>
           <span className="spacer" />
-          <span className="now">{nowStamp()}</span>
           <button
             className="search"
             onClick={() => window.dispatchEvent(new Event('tundra:search'))}
@@ -202,6 +201,7 @@ export function AppShell() {
             <span>Search…</span>
             <kbd>⌘K</kbd>
           </button>
+          <span className="now">{nowStamp()}</span>
         </header>
 
         <div className="op-content">

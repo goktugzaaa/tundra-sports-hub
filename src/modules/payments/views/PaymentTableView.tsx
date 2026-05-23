@@ -33,6 +33,7 @@ export function PaymentTableView() {
     usePayments();
   const today = todayISO();
   const [search, setSearch] = useState('');
+  const [status, setStatus] = useState<'all' | PaymentStatus>('all');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -55,14 +56,30 @@ export function PaymentTableView() {
     [payments, today],
   );
 
+  const counts = useMemo(() => {
+    const c: Record<PaymentStatus, number> = { overdue: 0, pending: 0, paid: 0 };
+    let pendingAmount = 0;
+    for (const p of payments) {
+      const eff = paymentRules.effectiveStatus(p, today);
+      c[eff]++;
+      if (eff === 'pending') pendingAmount += p.amount.amount;
+    }
+    return { ...c, pendingAmount };
+  }, [payments, today]);
+
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return payments;
     return payments.filter((p) => {
+      if (status !== 'all' && paymentRules.effectiveStatus(p, today) !== status) return false;
+      if (!q) return true;
       const name = (athleteName[p.athleteId] ?? p.athleteId).toLowerCase();
       return name.includes(q) || p.id.toLowerCase().includes(q);
     });
-  }, [payments, search, athleteName]);
+  }, [payments, status, search, today, athleteName]);
+
+  function pickStatus(s: PaymentStatus) {
+    setStatus((prev) => (prev === s ? 'all' : s));
+  }
 
   const buckets = useMemo<Bucket[]>(() => {
     const order: PaymentStatus[] = ['overdue', 'pending', 'paid'];
@@ -152,22 +169,59 @@ export function PaymentTableView() {
           </div>
         </div>
 
-        <div className="op-summary-line">
-          <SumItem l="Total revenue" v={formatMoney({ amount: summary.revenue, currency })} tone="ok" />
-          <Sep />
-          <SumItem
-            l="Outstanding"
-            v={formatMoney({ amount: summary.outstanding, currency })}
-            tone="warn"
-          />
-          <Sep />
-          <SumItem
-            l="Overdue"
-            v={formatMoney({ amount: summary.overdue, currency })}
-            tone="alert"
-          />
-          <Sep />
-          <SumItem l="Invoices" v={String(payments.length)} />
+        <div className="op-buckets" style={{ marginTop: 14, marginBottom: 6 }}>
+          <button
+            type="button"
+            className={'b' + (status === 'overdue' ? ' active' : '')}
+            onClick={() => pickStatus('overdue')}
+          >
+            <div className="l">
+              <span className="op-dot alert" /> Overdue
+            </div>
+            <div className="v alert">{formatMoney({ amount: summary.overdue, currency })}</div>
+            <div className="c">
+              {counts.overdue} invoice{counts.overdue === 1 ? '' : 's'} · past due
+            </div>
+          </button>
+          <button
+            type="button"
+            className={'b' + (status === 'pending' ? ' active' : '')}
+            onClick={() => pickStatus('pending')}
+          >
+            <div className="l">
+              <span className="op-dot warn" /> Pending
+            </div>
+            <div className="v warn">{formatMoney({ amount: counts.pendingAmount, currency })}</div>
+            <div className="c">
+              {counts.pending} invoice{counts.pending === 1 ? '' : 's'} · due
+            </div>
+          </button>
+          <button
+            type="button"
+            className={'b' + (status === 'paid' ? ' active' : '')}
+            onClick={() => pickStatus('paid')}
+          >
+            <div className="l">
+              <span className="op-dot ok" /> Cleared
+            </div>
+            <div className="v">{formatMoney({ amount: summary.revenue, currency })}</div>
+            <div className="c">
+              {counts.paid} invoice{counts.paid === 1 ? '' : 's'} · settled
+            </div>
+          </button>
+          <button
+            type="button"
+            className={'b' + (status === 'all' ? ' active' : '')}
+            onClick={() => setStatus('all')}
+          >
+            <div className="l">
+              <span className="op-dot" /> Outstanding
+            </div>
+            <div className="v">{formatMoney({ amount: summary.outstanding, currency })}</div>
+            <div className="c">
+              {counts.overdue + counts.pending} open · {payments.length} total
+            </div>
+          </button>
         </div>
       </div>
 
@@ -498,14 +552,3 @@ function InvoiceDrawer({
   );
 }
 
-function SumItem({ l, v, tone = '' }: { l: string; v: string; tone?: string }) {
-  return (
-    <span className="item">
-      <span className="l">{l}</span>
-      <span className={'v ' + tone}>{v}</span>
-    </span>
-  );
-}
-function Sep() {
-  return <span className="sep">·</span>;
-}
